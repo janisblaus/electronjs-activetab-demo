@@ -27,40 +27,44 @@ function initialise(){
   mainWindow.loadFile('index.html')
 
   mainWindow.webContents.once('dom-ready', () => {
-      
 
-      if( process.platform == 'win32' ){
-        setInterval(function(){
-          execFile('./bin/win/activetab', (err, stdout, stderr) => {
-            if (err) {
-              console.error(err);
-              return;
-            }
+    setInterval(function(){
+      findWindow();
+    },3000);
 
-            //send to renderer
-            if( mainWindow ){
-              mainWindow.webContents.send('store-data', stdout);
-            }
-          });
-        },2000);
-      }
-
-
-      if( process.platform == 'darwin' ){
-        const script = 'tell application "Google Chrome" to return URL of active tab of front window';
-
-        applescript.execString(script, (err, rtn) => {
-          if (err) {
-            // Something went wrong!
-          }
-          
-          mainWindow.webContents.send('store-data', rtn);
-        });
-      }
   })
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     mainWindow = null
   })
+}
+
+function findWindow()
+{
+  if( process.platform == 'win32' ){
+      execFile('./bin/win/activetab', (err, stdout, stderr) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+
+        //send to renderer
+        if( mainWindow ){
+          mainWindow.webContents.send('store-data', stdout);
+        }
+      });
+  }
+  
+  if( process.platform == 'darwin' ){
+    const script = 'tell application "Google Chrome" to return URL of active tab of front window';
+
+    applescript.execString(script, (err, rtn) => {
+      if (err) {
+        // Something went wrong!
+      }
+      
+      mainWindow.webContents.send('store-data', rtn);
+    });
+  }
 }
